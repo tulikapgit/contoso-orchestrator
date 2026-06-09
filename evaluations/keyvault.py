@@ -1,7 +1,7 @@
 import os
 from azure.identity import ChainedTokenCredential, ManagedIdentityCredential, AzureCliCredential
 from azure.keyvault.secrets import SecretClient
-from azure.core.exceptions import AzureError
+from azure.core.exceptions import AzureError, ResourceNotFoundError
 from appconfig import AppConfigClient
 
 class KeyVaultClient:
@@ -27,6 +27,8 @@ class KeyVaultClient:
         try:
             secret = self._client.get_secret(name)
             return secret.value
+        except ResourceNotFoundError:
+            return None
         except AzureError as e:
             # You might want to log or handle not found differently
             raise RuntimeError(f"Error retrieving secret '{name}': {e}")
