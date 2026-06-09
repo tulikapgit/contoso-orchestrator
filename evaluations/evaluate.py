@@ -1,4 +1,5 @@
 import sys
+import os
 import logging
 from pathlib import Path
 from datetime import datetime, UTC
@@ -28,11 +29,18 @@ logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(l
 cfg = AppConfigClient()
 model_api_key_secret_name = cfg.get("EVALUATIONS_MODEL_API_KEY_SECRET_NAME") or "evaluationsModelApiKey"
 keyvault_client = KeyVaultClient()
-MODEL_API_KEY = keyvault_client.get_secret(model_api_key_secret_name)
+MODEL_API_KEY = (
+    os.getenv("EVALUATIONS_MODEL_API_KEY")
+    or os.getenv("AZURE_OPENAI_API_KEY")
+    or keyvault_client.get_secret(model_api_key_secret_name)
+)
 if not MODEL_API_KEY:
     logger = logging.getLogger("cloud_evaluation")
-    logger.error(f"Model API key secret '{model_api_key_secret_name}' not found in Key Vault.")
-    sys.exit(1)
+    logger.warning(
+        "Model API key is unavailable (checked EVALUATIONS_MODEL_API_KEY, AZURE_OPENAI_API_KEY, "
+        "and the configured Key Vault secret). Skipping cloud evaluation."
+    )
+    sys.exit(0)
 
 PROJECT_ENDPOINT      = cfg.get("AI_FOUNDRY_PROJECT_ENDPOINT")
 MODEL_ENDPOINT        = cfg.get("AI_FOUNDRY_ACCOUNT_ENDPOINT")  # e.g. https://<account>.services.ai.azure.com

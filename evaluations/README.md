@@ -8,7 +8,7 @@ The evaluation process leverages the Azure AI Project client library to provide 
 
 For more details, refer to:
 
-* [Azure AI Projects Evaluation Documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/cloud-evaluation).
+* [Azure AI Projects Evaluation Documentation1](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/cloud-evaluation).
 * [Azure AI Projects Evaluation Python SDK](https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/ai/azure-ai-projects/README.md#evaluation).
 
 ## How It Works
@@ -77,7 +77,8 @@ These instructions guide you through running the evaluation for the GPT-RAG Orch
 * `CHAT_DEPLOYMENT_NAME`: The deployment name of your chat model.
 * `KEY_VAULT_URI`: The URI of your Azure Key Vault.
 
-In Azure Key Vault, create a secret named `evaluationsModelApiKey` with the value set to your model API key. If you prefer a different secret name, define it in the `EVALUATIONS_MODEL_API_KEY_SECRET_NAME` setting.
+In Azure Key Vault, create a secret named `evaluationsModelApiKey` with the value set to your model API key. If you prefer a different secret name, define it in the `EVALUATIONS_MODEL_API_KEY_SECRET_NAME` setting.  
+As an alternative, you can set `EVALUATIONS_MODEL_API_KEY` (or `AZURE_OPENAI_API_KEY`) in the environment to bypass Key Vault for the model API key.
 
 4. **Other Settings**: Ensure any additional App Configuration keys your application expects (e.g., `SEARCH_RAG_INDEX_NAME`, `SEARCH_SERVICE_QUERY_ENDPOINT`) are present.
 
@@ -117,7 +118,7 @@ These scripts perform the following:
 
 ### Troubleshooting
 
-* **Authentication Errors**: If the script reports missing `model-endpoint` or `api-key`, verify that Key Vault contains the secret named by `EVALUATIONS_MODEL_API_KEY_SECRET_NAME` in App Configuration, and that AppConfigClient can access it.
+* **Authentication Errors**: If the script reports missing `model-endpoint` or `api-key`, verify that Key Vault contains the secret named by `EVALUATIONS_MODEL_API_KEY_SECRET_NAME` in App Configuration, and that AppConfigClient can access it. You can also provide `EVALUATIONS_MODEL_API_KEY` (or `AZURE_OPENAI_API_KEY`) directly in the environment.
 * **App Configuration Access**: Ensure that the managed identity or Azure CLI login has access to read App Configuration settings.
 * **Azure AI Projects Endpoint**: Confirm that `AI_FOUNDRY_PROJECT_ENDPOINT` and `AI_FOUNDRY_ACCOUNT_ENDPOINT` values are correct and correspond to your Azure AI resource.
 * **Environment Variables**: Double-check that all required environment variables are set in your shell before running the scripts.
