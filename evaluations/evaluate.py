@@ -38,7 +38,7 @@ if not MODEL_API_KEY:
     logger = logging.getLogger("cloud_evaluation")
     logger.warning(
         "Model API key is unavailable (checked EVALUATIONS_MODEL_API_KEY, AZURE_OPENAI_API_KEY, "
-        f"and Key Vault secret '{model_api_key_secret_name}'). Skipping cloud evaluation."
+        "and the configured Key Vault secret). Skipping cloud evaluation."
     )
     sys.exit(0)
 
