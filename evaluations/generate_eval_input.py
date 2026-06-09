@@ -30,18 +30,20 @@ def main():
     logger.info("🔧 Loading App Configuration settings")
     cfg = AppConfigClient()
     index_name = cfg.get("SEARCH_RAG_INDEX_NAME")
-    search_endpoint = cfg.get("SEARCH_SERVICE_QUERY_ENDPOINT")
-    if not index_name or not search_endpoint:
-        logger.error("SEARCH_RAG_INDEX_NAME or SEARCH_SERVICE_QUERY_ENDPOINT not set")
-        raise EnvironmentError("SEARCH_RAG_INDEX_NAME and SEARCH_SERVICE_QUERY_ENDPOINT must be set")
-
-    logger.info(f"📚 Connecting to Azure Cognitive Search (index={index_name}, endpoint={search_endpoint})")
-    credential = ChainedTokenCredential(ManagedIdentityCredential(), AzureCliCredential())
-    search_client = SearchClient(
-        endpoint=search_endpoint,
-        index_name=index_name,
-        credential=credential
-    )
+    search_endpoint = cfg.get("SEARCH_SERVICE_QUERY_ENDPOINT") or cfg.get("SEARCH_SERVICE_ENDPOINT")
+    search_client = None
+    if index_name and search_endpoint:
+        logger.info(f"📚 Connecting to Azure Cognitive Search (index={index_name}, endpoint={search_endpoint})")
+        credential = ChainedTokenCredential(ManagedIdentityCredential(), AzureCliCredential())
+        search_client = SearchClient(
+            endpoint=search_endpoint,
+            index_name=index_name,
+            credential=credential
+        )
+    else:
+        logger.warning(
+            "SEARCH_RAG_INDEX_NAME or search endpoint not set; proceeding without retrieval context"
+        )
 
     # Use TestClient on the imported FastAPI app
     client = TestClient(app)
@@ -67,13 +69,14 @@ def main():
             response_text = resp.text
             logger.debug(f"[{idx}] Response received (first 100 chars): {response_text[:100]!r}")
 
-            logger.info(f"[{idx}] 🔍 Fetching top-3 documents from Search")
             docs = []
-            results = search_client.search(search_text=query, top=3)
-            for doc in results:
-                content = doc.get("content", "")
-                docs.append(content)
-            logger.debug(f"[{idx}] Retrieved documents previews: {[d[:50] for d in docs]!r}")
+            if search_client:
+                logger.info(f"[{idx}] 🔍 Fetching top-3 documents from Search")
+                results = search_client.search(search_text=query, top=3)
+                for doc in results:
+                    content = doc.get("content", "")
+                    docs.append(content)
+                logger.debug(f"[{idx}] Retrieved documents previews: {[d[:50] for d in docs]!r}")
 
             # Build record without 'item' field
             record = {
